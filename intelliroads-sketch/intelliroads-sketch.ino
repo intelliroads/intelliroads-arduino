@@ -1,20 +1,20 @@
 /*
   Intelliroads
- 
+
  Demonstrates the use of reed switches wired to the Arduino board,
- in this to calculate the speed of the magnet an make a POST to a 
+ in this case to calculate the speed of the magnet and make a POST to a
  RESTful API. The reed switches are separated by a known distance,
  which combined with the closing time of each switch, is used by
  Arduino to calculate the speed of the magnet. Finally, the Arduino
  makes a POST with the payload containing the speed value.
- 
+
  The circuit:
  WiFi shield.
  Reed switches attached from 5V to pins 7 and 8, through 10k ohm pull-down resistors.
- 
+
  created 2014
  by Alfredo El Ters, Diego Muracciole, Mathias Cabano, Matias Olivera y Santiago Caamano
- 
+
  */
 
 #include <SPI.h>
@@ -47,14 +47,14 @@ unsigned long switchBTime;
 void setup() {
   // initialize Serial:
   Serial.begin(9600);
-  
+
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
     // don't continue:
     while (true);
   }
-  
+
   // attempt to connect to Wifi network:
   while (status != WL_CONNECTED) {
     Serial.print("Attempting to connect to SSID: ");
@@ -65,7 +65,7 @@ void setup() {
     // wait 10 seconds for connection:
     delay(10000);
   }
-  
+
   // initialize the reed switches pins as inputs:
   pinMode(switchAPin, INPUT);
   pinMode(switchBPin, INPUT);
@@ -77,16 +77,16 @@ void loop() {
   switchAReading = digitalRead(switchAPin);
   if (switchAReading == HIGH) {
     switchATime = millis();
-    
+
     Serial.println("Waiting for switch B...");
-    // wait for trigger of switch B to start calculation - otherwise timeout 
+    // wait for trigger of switch B to start calculation - otherwise timeout
     do {
       switchBReading = digitalRead(switchBPin);
       if (millis() - switchATime > 5000) {
         return;
       }
     } while (switchBReading == LOW);
-    
+
     switchBTime = millis();
     float timing = ((float) switchBTime - (float) switchATime)/1000;      // computes time in seconds
     float speed = distance/timing;      // computes speed in m/s
@@ -96,7 +96,7 @@ void loop() {
 
 void postReading(float speed) {
   String data = "{ \"highwayId\": \"" + highwayId + "\", \"spotId\": " + spotId + ", \"laneId\": " + laneId + ", \"speed\": " + speed + " }";
-  
+
   Serial.println(data);
   // close any connection before send a new request.
   // this will free the socket on the WiFi shield:
